@@ -1,5 +1,5 @@
 # SiamBOMB
-This repo is just a preview version of SiamBOMB. \
+This repo is preview version 0.2 of SiamBOMB. \
 This code is released under the [Apache 2.0 license](https://github.com/JackieZhai/SiamBOMB/blob/master/LICENSE).\
 Copyright \(c\) 2020 Institute of Automation, Chinese Academy of Sciences. 
 All rights reserved.
@@ -51,9 +51,13 @@ You can also choose other models from: [Model Zoo](https://github.com/STVIR/pyso
 python window_running.py
 ```
 1. [Top three buttons] Choose one of three loading ways: images, video or webcam.
-2. [B-box setting] Select several bounding for your targets, it can re-select.
+2. [B-box setting] Select several bounding for your targets and determine which is the first frame, it can re-select. 
+(Using the Mouse and Keyboard ',' and '.' or bottom-right ScrollBar)
 3. [Algorithm processing] Do tracking and segmentation, press [Suspending] if you want to terminate.
-* Note: As a demo now, it can only fit well for 800*600 image/video stream, and will update later.
+* Bottom-left is Status/ProcessBar.
+* Top-left shows output messages including Behavior Analysis. Middle-Right SpinBox for selecting from multiple target.
+* Middle-Right CheckBox for saving data locally. You can use bottom-right ScrollBar for review after Algorithm procedure.
+* Suitable for any size of image stream which is smaller than projection area (you can rescale the window before loading stream).
 
 ## References
 ### Repositories
