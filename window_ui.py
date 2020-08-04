@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
+
 # Created by: PyQt5 UI code generator 5.10.1
-# Modified by: JackieZhai on Feb 20 2020. All Rights Reserved.
+#
+# Author: JackieZhai @ MiRA, CASIA
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtGui import QPainter, QPixmap, QPen, QBrush
+from PyQt5.QtGui import QPainter, QPixmap, QPen, QFont, QIcon
 from PyQt5.QtCore import Qt, QPoint
+import window_rc  # pyrcc5 *.qrc -o *.py
 
 class Rect:
     def __init__(self):
@@ -26,8 +30,12 @@ class Rect:
 class Ui_MainWindow(QWidget):
     def __init__(self, parent=None):
         super(Ui_MainWindow, self).__init__(parent)
+        # 流的宽、高、总帧数、初始帧数
+        self.W = 800
+        self.H = 600
+        self.F = 0
+        self.INIT = 0
         self.setMouseTracking(True)
-        self.setWindowTitle("Second Test")
         self.lastPoint = QPoint()
         self.endPoint = QPoint()
         # 存储b-box坐标信息
@@ -35,7 +43,7 @@ class Ui_MainWindow(QWidget):
         # 辅助画布
         self.pp = QPainter()
         self.paint_frame = None
-        self.tempPix = QPixmap(800, 600)
+        self.tempPix = QPixmap(self.W, self.H)
         self.tempPix.fill(Qt.white)
         self.shape = None
         self.rectList = []
@@ -46,71 +54,195 @@ class Ui_MainWindow(QWidget):
         self.first_frame = False
         # 目前状态 Suspending|Location|Video|Camera = 0|1|2|3
         self.isStatus = 0
+        self.isAlgorithm = False
         self.setupUi()
 
     def setupUi(self):
         self.setObjectName("MainWindow")
-        self.resize(1350, 725)
+        self.resize(1920, 1080)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
         self.centralwidget = QtWidgets.QWidget(self)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
+        self.centralwidget.setSizePolicy(sizePolicy)
         self.centralwidget.setObjectName("centralwidget")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetMinAndMaxSize)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_general = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_general.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout_general.setObjectName("horizontalLayout_general")
+        self.verticalLayout_stream = QtWidgets.QVBoxLayout()
+        self.verticalLayout_stream.setSpacing(0)
+        self.verticalLayout_stream.setObjectName("verticalLayout_stream")
         self.label_image = QtWidgets.QLabel(self.centralwidget)
-        self.label_image.setGeometry(QtCore.QRect(0, 0, 800, 600))
-        self.label_image.setObjectName("label_3")
-        self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(825, 25, 500, 700))
-        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButton_locationLoading = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.label_image.sizePolicy().hasHeightForWidth())
+        self.label_image.setSizePolicy(sizePolicy)
+        self.label_image.setMinimumSize(QtCore.QSize(400, 400))
+        self.label_image.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_image.setObjectName("label_image")
+        self.verticalLayout_stream.addWidget(self.label_image)
+        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
+        fontP = QFont('Times New Roman')
+        pointSizeP = fontP.pointSize()
+        fontP.setPixelSize(pointSizeP * 80 / 36)
+        self.progressBar.setFont(fontP)
+        self.progressBar.setMouseTracking(False)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBar.setInvertedAppearance(False)
+        self.progressBar.setTextDirection(QtWidgets.QProgressBar.TopToBottom)
+        self.progressBar.setObjectName("progressBar")
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.progressBar.setSizePolicy(sizePolicy)
+        self.verticalLayout_stream.addWidget(self.progressBar)
+        self.verticalLayout_stream.setStretch(0, 24)
+        self.verticalLayout_stream.setStretch(1, 1)
+        self.horizontalLayout_general.addLayout(self.verticalLayout_stream)
+        self.verticalLayout_operate = QtWidgets.QVBoxLayout()
+        self.verticalLayout_operate.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.verticalLayout_operate.setSpacing(0)
+        self.verticalLayout_operate.setObjectName("verticalLayout_operate")
+        self.horizontalLayout_logo = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_logo.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout_logo.setContentsMargins(-1, -1, -1, 0)
+        self.horizontalLayout_logo.setSpacing(0)
+        self.horizontalLayout_logo.setObjectName("horizontalLayout_logo")
+        self.label_logo = QtWidgets.QLabel(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.label_logo.sizePolicy().hasHeightForWidth())
+        self.label_logo.setSizePolicy(sizePolicy)
+        self.label_logo.setAlignment(Qt.AlignCenter)
+        self.label_logo.setObjectName("label_logo")
+        self.horizontalLayout_logo.addWidget(self.label_logo)
+        self.horizontalLayout_logo.setStretch(0, 20)
+        self.verticalLayout_operate.addLayout(self.horizontalLayout_logo)
+        self.verticalLayout_button = QtWidgets.QVBoxLayout()
+        self.verticalLayout_button.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.verticalLayout_button.setSpacing(15)
+        self.verticalLayout_button.setObjectName("verticalLayout_button")
+        self.horizontalLayout_loading = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_loading.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout_loading.setObjectName("horizontalLayout_loading")
+        self.pushButton_locationLoading = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.pushButton_locationLoading.sizePolicy().hasHeightForWidth())
+        self.pushButton_locationLoading.setSizePolicy(sizePolicy)
+        self.pushButton_locationLoading.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.pushButton_locationLoading.setObjectName("pushButton_locationLoading")
-        self.horizontalLayout.addWidget(self.pushButton_locationLoading)
-        self.pushButton_videoLoading = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.horizontalLayout_loading.addWidget(self.pushButton_locationLoading)
+        self.pushButton_videoLoading = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.pushButton_videoLoading.sizePolicy().hasHeightForWidth())
+        self.pushButton_videoLoading.setSizePolicy(sizePolicy)
+        self.pushButton_videoLoading.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.pushButton_videoLoading.setObjectName("pushButton_videoLoading")
-        self.horizontalLayout.addWidget(self.pushButton_videoLoading)
-        self.verticalLayout.addLayout(self.horizontalLayout)
-        self.pushButton_cameraLoading = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.horizontalLayout_loading.addWidget(self.pushButton_videoLoading)
+        self.verticalLayout_button.addLayout(self.horizontalLayout_loading)
+        self.horizontalLayout_loading.setStretch(0, 7)
+        self.horizontalLayout_loading.setStretch(1, 6)
+        self.pushButton_cameraLoading = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.pushButton_cameraLoading.sizePolicy().hasHeightForWidth())
+        self.pushButton_cameraLoading.setSizePolicy(sizePolicy)
+        self.pushButton_cameraLoading.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.pushButton_cameraLoading.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.pushButton_cameraLoading.setObjectName("pushButton_cameraLoading")
-        self.verticalLayout.addWidget(self.pushButton_cameraLoading)
-        self.pushButton_bboxSetting = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.verticalLayout_button.addWidget(self.pushButton_cameraLoading)
+        self.pushButton_bboxSetting = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.pushButton_bboxSetting.sizePolicy().hasHeightForWidth())
+        self.pushButton_bboxSetting.setSizePolicy(sizePolicy)
+        self.pushButton_bboxSetting.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.pushButton_bboxSetting.setObjectName("pushButton_bboxSetting")
-        self.verticalLayout.addWidget(self.pushButton_bboxSetting)
-        self.pushButton_algorithmProcessing = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.verticalLayout_button.addWidget(self.pushButton_bboxSetting)
+        self.pushButton_algorithmProcessing = QtWidgets.QPushButton(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.pushButton_algorithmProcessing.sizePolicy().hasHeightForWidth())
+        self.pushButton_algorithmProcessing.setSizePolicy(sizePolicy)
+        self.pushButton_algorithmProcessing.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.pushButton_algorithmProcessing.setObjectName("pushButton_algorithmProcessing")
-        self.verticalLayout.addWidget(self.pushButton_algorithmProcessing)
-        self.checkBox = QtWidgets.QCheckBox(self.verticalLayoutWidget)
-        self.checkBox.setObjectName("checkBox")
-        self.verticalLayout.addWidget(self.checkBox)
-        self.horizontalLayout_select = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_select.setObjectName("horizontalLayout_select")
-        self.spinBox = QtWidgets.QSpinBox(self.verticalLayoutWidget)
+        self.verticalLayout_button.addWidget(self.pushButton_algorithmProcessing)
+        self.verticalLayout_operate.addLayout(self.verticalLayout_button)
+        self.horizontalLayout_spin = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_spin.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout_spin.setContentsMargins(-1, 15, -1, -1)
+        self.horizontalLayout_spin.setObjectName("horizontalLayout_spin")
+        self.spinBox = QtWidgets.QSpinBox(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.spinBox.sizePolicy().hasHeightForWidth())
+        self.spinBox.setSizePolicy(sizePolicy)
         self.spinBox.setObjectName("spinBox")
-        self.horizontalLayout_select.addWidget(self.spinBox)
-        self.label_spinBox = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.label_spinBox.setMaximumSize(10000, 45)
-        self.label_spinBox.setText('Analysis Object Selecting')
-        self.horizontalLayout_select.addWidget(self.label_spinBox)
-        self.horizontalLayout_select.setStretch(1, 1)
-        self.horizontalLayout_select.setStretch(2, 5)
-        self.verticalLayout.addLayout(self.horizontalLayout_select)
-        self.label_bbox = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.label_bbox.setAlignment(Qt.AlignCenter)
-        self.label_bbox.setWordWrap(True)
-        self.verticalLayout.addWidget(self.label_bbox)
-        self.label_source = QtWidgets.QLabel(self.verticalLayoutWidget)
-        self.label_source.setAlignment(Qt.AlignCenter)
-        self.label_source.setWordWrap(True)
-        self.verticalLayout.addWidget(self.label_source)
+        self.horizontalLayout_spin.addWidget(self.spinBox)
+        self.label_spinBox = QtWidgets.QLabel(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.label_spinBox.sizePolicy().hasHeightForWidth())
+        self.label_spinBox.setSizePolicy(sizePolicy)
+        self.label_spinBox.setObjectName("label_spinBox")
+        self.horizontalLayout_spin.addWidget(self.label_spinBox)
+        self.horizontalLayout_spin.setStretch(0, 2)
+        self.horizontalLayout_spin.setStretch(1, 8)
+        self.verticalLayout_operate.addLayout(self.horizontalLayout_spin)
+        self.horizontalLayout_check = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_check.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.horizontalLayout_check.setSpacing(0)
+        self.horizontalLayout_check.setObjectName("horizontalLayout_check")
+        self.checkBox = QtWidgets.QCheckBox(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.checkBox.sizePolicy().hasHeightForWidth())
+        self.checkBox.setSizePolicy(sizePolicy)
+        self.checkBox.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.checkBox.setObjectName("checkBox")
+        self.horizontalLayout_check.addWidget(self.checkBox)
+        self.horizontalLayout_check.setContentsMargins(-1, 15, -1, 20)
+        self.verticalLayout_operate.addLayout(self.horizontalLayout_check)
+        self.verticalLayout_message = QtWidgets.QVBoxLayout()
+        self.verticalLayout_message.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.verticalLayout_message.setSpacing(10)
+        self.verticalLayout_message.setObjectName("verticalLayout_message")
+        self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
+        self.textBrowser.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.textBrowser.setObjectName("textBrowser")
+        self.verticalLayout_message.addWidget(self.textBrowser)
+        self.scrollBar = QtWidgets.QScrollBar(self.centralwidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.scrollBar.sizePolicy().hasHeightForWidth())
+        self.scrollBar.setSizePolicy(sizePolicy)
+        self.scrollBar.setOrientation(QtCore.Qt.Horizontal)
+        self.scrollBar.setObjectName("scrollBar")
+        self.scrollBar.setMaximum(0)
+        self.verticalLayout_message.addWidget(self.scrollBar)
+        self.verticalLayout_message.setStretch(0, 10)
+        self.verticalLayout_message.setStretch(1, 1)
+        self.verticalLayout_operate.addLayout(self.verticalLayout_message)
+        self.verticalLayout_operate.setStretch(0, 10)
+        self.verticalLayout_operate.setStretch(1, 16)
+        self.verticalLayout_operate.setStretch(2, 2)
+        self.verticalLayout_operate.setStretch(3, 2)
+        self.verticalLayout_operate.setStretch(4, 25)
+        self.horizontalLayout_general.addLayout(self.verticalLayout_operate)
+        self.horizontalLayout_general.setStretch(0, 3)
+        self.horizontalLayout_general.setStretch(1, 1)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_general)
         self.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(self)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 826, 20))
-        self.menubar.setObjectName("menubar")
-        self.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(self)
-        self.statusbar.setObjectName("statusbar")
-        self.setStatusBar(self.statusbar)
+        font = QFont('Times New Roman')
+        pointSize = font.pointSize()
+        font.setPixelSize(pointSize * 90 / 36)
+        self.progressBar.setFont(font)
+        self.label_logo.setFont(font)
+        self.pushButton_locationLoading.setFont(font)
+        self.pushButton_videoLoading.setFont(font)
+        self.pushButton_cameraLoading.setFont(font)
+        self.pushButton_bboxSetting.setFont(font)
+        self.pushButton_algorithmProcessing.setFont(font)
+        self.label_spinBox.setFont(font)
+        self.checkBox.setFont(font)
+        self.textBrowser.setFont(font)
+        self.setFont(font)
+        self.label_logo.setPixmap(QPixmap(':rc/logo.png'))
 
         self.retranslateUi(self)
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -118,17 +250,20 @@ class Ui_MainWindow(QWidget):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "SiamBOMB"))
+        MainWindow.setWindowIcon(QIcon(':rc/icon.png'))  # Thanks Open Source Site: https://www.iconfont.cn/
+        self.progressBar.setFormat(_translate("MainWindow", "STAND BY"))
         self.pushButton_locationLoading.setText(_translate("MainWindow", "&Location Loading"))
-        self.pushButton_locationLoading.setDefault(True)
         self.pushButton_videoLoading.setText(_translate("MainWindow", "&Video Loading"))
-        self.pushButton_videoLoading.setDefault(True)
         self.pushButton_cameraLoading.setText(_translate("MainWindow", "&Camera Loading"))
-        self.pushButton_cameraLoading.setDefault(True)
         self.pushButton_bboxSetting.setText(_translate("MainWindow", "&B-box Setting"))
-        self.pushButton_bboxSetting.setDefault(True)
         self.pushButton_algorithmProcessing.setText(_translate("MainWindow", "&Algorithm Processing"))
-        self.pushButton_algorithmProcessing.setDefault(True)
-        self.checkBox.setText(_translate("MainWindow", "&Data Saving"))
+        self.checkBox.setText(_translate("MainWindow", " &Data Local Saving"))
+        self.label_spinBox.setText('   Behavior Analysis Selecting')
+        self.textBrowser.setText('Welcome to SiamBOMB!\n' +
+                                 'Copyright © 2020 MiRA,\n' +
+                                 'Institute of Automation, CAS.\n' +
+                                 'Under the Apache 2.0 license.\n' +
+                                 'All rights reserved.')
 
     def paintEvent(self, event):
         if self.isPainting and self.perm:
@@ -138,10 +273,6 @@ class Ui_MainWindow(QWidget):
             for shape in self.rectList:
                 shape.paint(self.pp)
             self.pp.end()
-            label_text = ''
-            for item in self.bbox_list:
-                label_text += '\n'+str(item)
-            self.label_bbox.setText(label_text)
             self.label_image.setPixmap(self.tempPix)
 
     def mousePressEvent(self, event):
@@ -151,19 +282,37 @@ class Ui_MainWindow(QWidget):
                 if self.shape is not None:
                     self.perm = False
                     self.rectList.append(self.shape)
-                    self.shape.setStart(event.pos())
-                    self.shape.setEnd(event.pos())
+                    label_left = self.label_image.geometry().left()
+                    label_top = self.label_image.geometry().top()
+                    label_width = self.label_image.geometry().width()
+                    label_height = self.label_image.geometry().height()
+                    self.shape.setStart(QPoint(event.pos().x() - (label_width - self.W) // 2 - label_left,
+                                               event.pos().y() - (label_height - self.H) // 2 - label_top))
+                    self.shape.setEnd(QPoint(event.pos().x() - (label_width - self.W) // 2 - label_left,
+                                             event.pos().y() - (label_height - self.H) // 2 - label_top))
                 self.update()
 
     def mouseReleaseEvent(self, event):
         if self.isPainting:
             if event.button() == Qt.LeftButton:
-                self.bbox_list.append((self.shape.startPoint().x(),
-                                       self.shape.startPoint().y(),
-                                       self.shape.endPoint().x()-self.shape.startPoint().x(),
-                                       self.shape.endPoint().y()-self.shape.startPoint().y()))
+                x = self.shape.startPoint().x()
+                y = self.shape.startPoint().y()
+                w = self.shape.endPoint().x() - self.shape.startPoint().x()
+                h = self.shape.endPoint().y() - self.shape.startPoint().y()
+                if w < 0:
+                    w = -w
+                    x -= w
+                if h < 0:
+                    h = -h
+                    y -= h
+                self.bbox_list.append((x, y, w, h))
                 self.perm = True
                 self.shape = None
+                bbox_setting_text = ''
+                for item in self.bbox_list:
+                    bbox_setting_text += '\n' + str(item)
+                self.textBrowser.append('————————————\nB-box Setting Now: '
+                                        + bbox_setting_text)
                 self.update()
 
     def mouseMoveEvent(self, event):
@@ -171,5 +320,10 @@ class Ui_MainWindow(QWidget):
             self.endPoint = event.pos()
             if event.buttons() & Qt.LeftButton:
                 if self.shape is not None and not self.perm:
-                    self.shape.setEnd(event.pos())
+                    label_left = self.label_image.geometry().left()
+                    label_top = self.label_image.geometry().top()
+                    label_width = self.label_image.geometry().width()
+                    label_height = self.label_image.geometry().height()
+                    self.shape.setEnd(QPoint(event.pos().x() - (label_width - self.W) // 2 - label_left,
+                                             event.pos().y() - (label_height - self.H) // 2 - label_top))
                     self.update()

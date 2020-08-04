@@ -3,13 +3,13 @@ This repo is preview version 0.2 of SiamBOMB. \
 This code is released under the [Apache 2.0 license](https://github.com/JackieZhai/SiamBOMB/blob/master/LICENSE).\
 Copyright \(c\) 2020 Institute of Automation, Chinese Academy of Sciences. 
 All rights reserved.
-<p align="center"><img src="README/affiliation.png" width="400"></p>
+<p align="center"><img src="README/affiliation.png" width="500"></p>
 
 ## Introduction
 Our Demo Video: [https://youtu.be/x4tjOdrtQ98](https://youtu.be/x4tjOdrtQ98) or [https://www.bilibili.com/video/av92152869](https://www.bilibili.com/video/av92152869) \
 Our Paper (IJCAI 2020 Demo Track): [10.24963/ijcai.2020/776](https://www.ijcai.org/Proceedings/2020/0776.pdf)
 
-<p align="center"><img src="README/demo.gif" width="300"></p>
+<p align="center"><img src="README/demo.gif" width="500"></p>
 
 1. This project is based on [PySOT](https://github.com/STVIR/pysot).
 2. We develop it with [PyQt5](https://www.riverbankcomputing.com/software/pyqt/intro).

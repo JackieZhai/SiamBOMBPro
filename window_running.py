@@ -1,7 +1,9 @@
-# Modified by: JackieZhai on Feb 20 2020. All Rights Reserved.
+# -*- coding: utf-8 -*-
+
+# Author: JackieZhai @ MiRA, CASIA
 
 import sys
-from os import system, path
+from os import system, path, listdir
 from copy import deepcopy
 from glob import glob
 from imutils.video import FPS
@@ -12,12 +14,14 @@ import torch
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from window_ui import Ui_MainWindow
 from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtCore import Qt
 
 from pysot.core.config import cfg
 from pysot.models.model_builder import ModelBuilder
 from pysot.tracker.tracker_builder import build_tracker
 
 torch.set_num_threads(1)
+
 
 class MyMainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -28,6 +32,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_cameraLoading.clicked.connect(self.camera_loading)
         self.pushButton_bboxSetting.clicked.connect(self.bbox_setting)
         self.pushButton_algorithmProcessing.clicked.connect(self.algorithm_processing)
+        self.scrollBar.valueChanged.connect(self.slider_change)
+        self.checkBox.stateChanged.connect(self.checkbox_change)
+        # Message box ignore
+        self.bbox_tips = True
+        self.save_tips = True
         # Initialize trackers
         model_location = './pysot/experiments/siammaske_r50_l3'
         self.config = model_location + '/config.yaml'
@@ -44,6 +53,8 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.vs = None
         self.analysis_box = None
         self.analysis_max = 10
+        self.save_location = ''
+        self.afterCamera = False
 
     def cv2_to_qimge(self, cvImg):
         cvImg = cv2.cvtColor(cvImg, cv2.COLOR_BGR2RGB)
@@ -58,6 +69,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         elif video_name.endswith('avi') or \
                 video_name.endswith('mp4'):
             cap = cv2.VideoCapture(video_name)
+            self.W = cap.get(3)
+            self.H = cap.get(4)
+            self.F = int(cap.get(7))
+            self.scrollBar.setMaximum(self.F - 1)
+            cap.set(1, self.INIT)
             while True:
                 ret, frame = cap.read()
                 if ret:
@@ -68,8 +84,12 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             images = glob(path.join(video_name, '*.jp*'))
             images = sorted(images,
                             key=lambda x: int(x.split('\\')[-1].split('.')[0]))
-            for img in images:
-                frame = cv2.imread(img)
+            self.F = len(images)
+            self.scrollBar.setMaximum(self.F - 1)
+            for img in range(self.INIT, self.F):
+                frame = cv2.imread(images[img])
+                self.W = frame.shape[1]
+                self.H = frame.shape[0]
                 yield frame
 
     def analysis_init(self):
@@ -90,15 +110,15 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         if self.analysis_box[b][4] is None:
             self.analysis_box[b][0][self.analysis_box[b][1]] = center
         else:
-            self.analysis_box[b][0][self.analysis_box[b][1]] = (center[0]-self.analysis_box[b][4][0],
-                                                                center[1]-self.analysis_box[b][4][1])
+            self.analysis_box[b][0][self.analysis_box[b][1]] = (center[0] - self.analysis_box[b][4][0],
+                                                                center[1] - self.analysis_box[b][4][1])
         self.analysis_box[b][1] += 1
         if self.analysis_box[b][1] >= self.analysis_max:
             self.analysis_box[b][1] = 0
         mean_trans = 0.0
         for item in self.analysis_box[b][0]:
             if item is not None:
-                mean_trans += np.sqrt(item[0]*item[0]+item[1]*item[1])
+                mean_trans += np.sqrt(item[0] * item[0] + item[1] * item[1])
         mean_trans /= self.analysis_max
 
         if self.analysis_box[b][4] is None:
@@ -126,11 +146,15 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 
         if b == self.spinBox.value():
             text = "Trans: {:.2f} pixel/frame".format(mean_trans)
-            cv2.putText(frame, text, (60, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
-            text = "SegMove: {:.2f} %/frame".format(mean_segmove*100)
-            cv2.putText(frame, text, (60, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
-            cv2.putText(frame, mean_state_text, (60, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 255), 2)
-        # Figure 400 | 370, 400, 430
+            cv2.putText(frame, text, (60, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+            text = "SegMove: {:.2f} %/frame".format(mean_segmove * 100)
+            cv2.putText(frame, text, (60, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+            cv2.putText(frame, mean_state_text, (60, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            # text = "Trans: {:.2f} pixel/frame".format(mean_trans)
+            # cv2.putText(frame, text, (360, 370), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+            # text = "SegMove: {:.2f} %/frame".format(mean_segmove * 100)
+            # cv2.putText(frame, text, (360, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
+            # cv2.putText(frame, mean_state_text, (360, 430), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
         self.analysis_box[b][4] = center
         self.analysis_box[b][5] = mask
@@ -141,14 +165,16 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             return
         elif self.isStatus != 0:
             print('[INFO] Error in interrupting algorithm.')
-            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First.\n'
-                                                     '(Key: ... Suspending)', QMessageBox.Ok)
+            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First. ' +
+                                    '(Key: ... Suspending)', QMessageBox.Ok)
             return
+        self.afterCamera = False
         self.video_name = QFileDialog.getExistingDirectory(self, 'Choose Frames Location', './')
         if self.video_name == '':
             return
-        self.label_source.setText(self.video_name)
+        self.textBrowser.append('————————————\nStream Path: \n' + self.video_name)
         is_frame = False
+        self.INIT = 0
         for frame in self.get_frames(self.video_name):
             is_frame = True
             self.label_image.setPixmap(QPixmap(self.cv2_to_qimge(frame)))
@@ -157,8 +183,8 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             break
         if not is_frame:
             print('[INFO] Error in location selecting.')
-            QMessageBox.information(self, 'Warning', 'You Must Choose Some Location (That Contains Images).\n'
-                                                     '(Shortcut Key: Alt + L)', QMessageBox.Ok)
+            QMessageBox.information(self, 'Warning', 'You Must Choose Some Location (That Contains Images). ' +
+                                    '(Shortcut Key: Alt + L)', QMessageBox.Ok)
             return
         self.isStatus = 1
 
@@ -168,15 +194,17 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             return
         elif self.isStatus != 0:
             print('[INFO] Error in interrupting algorithm.')
-            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First.\n'
-                                                     '(Key: ... Suspending)', QMessageBox.Ok)
+            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First. ' +
+                                    '(Key: ... Suspending)', QMessageBox.Ok)
             return
+        self.afterCamera = False
         self.video_name = QFileDialog.getOpenFileName(self, 'Choose Frames File', './', 'Video file (*.avi *.mp4)')
         self.video_name, _ = self.video_name
         if self.video_name == '':
             return
-        self.label_source.setText(self.video_name)
+        self.textBrowser.append('————————————\nStream Path: \n' + self.video_name)
         is_frame = False
+        self.INIT = 0
         for frame in self.get_frames(self.video_name):
             is_frame = True
             self.label_image.setPixmap(QPixmap(self.cv2_to_qimge(frame)))
@@ -185,16 +213,16 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             break
         if not is_frame:
             print('[INFO] Error in video reading.')
-            QMessageBox.information(self, 'Warning', 'You Must Re-choose Some Video (That Could Be Read).\n'
-                                                     '(Shortcut Key: Alt + V)', QMessageBox.Ok)
+            QMessageBox.information(self, 'Warning', 'You Must Re-choose Some Video (That Could Be Read). ' +
+                                    '(Shortcut Key: Alt + V)', QMessageBox.Ok)
             return
         self.isStatus = 2
 
     def camera_loading(self):
         if self.isStatus == 1 or self.isStatus == 2:
             print('[INFO] Error in interrupting algorithm.')
-            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First.\n'
-                                                     '(Key: ... Suspending)', QMessageBox.Ok)
+            QMessageBox.information(self, 'Warning', 'You Must Stop Algorithm Process First. ' +
+                                    '(Key: ... Suspending)', QMessageBox.Ok)
             return
         if self.isStatus == 3:
             self.isStatus = 0
@@ -206,31 +234,40 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             if self.vs is not None:
                 self.vs.release()
             self.isPainting = False
+            self.afterCamera = True
+            self.F = len(listdir(self.save_location))
+            self.scrollBar.setMaximum(self.F)
+            self.scrollBar.setProperty('value', self.F)
         else:
             self.isStatus = 3
             self.pushButton_cameraLoading.setText('&Camera Suspending')
+            self.afterCamera = False
         if self.isStatus == 3:
             trackers = []
             mirror = True
             print("[INFO] Importing webcam stream.")
             self.vs = cv2.VideoCapture(0)
-            self.vs.set(3, 1280)
-            self.vs.set(4, 720)
+            label_width = self.label_image.geometry().width()
+            label_height = self.label_image.geometry().height()
+            self.vs.set(3, label_width)
+            self.vs.set(4, label_height)
+            self.W = self.vs.get(3)
+            self.H = self.vs.get(4)
             fps_cal = None
             f = 0
             self.first_frame = True
             save_loc_d = './ans/' + '__webcam__'
             save_loc_t = save_loc_d + '/' + str(self.tracker_name)
+            self.save_location = save_loc_t
             system('mkdir ' + save_loc_t.replace('/', '\\'))
             system('del /q ' + save_loc_t.replace('/', '\\'))
             while True:
                 _, frame = self.vs.read()
-                # 预处理的裁切 -> 800*600
-                frame = frame[60:660, 240:1040, :]
                 if mirror:
                     frame = cv2.flip(frame, 1)
                 self.paint_frame = frame
                 if (not self.isPainting) and len(self.bbox_list):
+                    self.progressBar.setFormat('HANDLE')
                     if self.first_frame:
                         print('[INFO] Here are initialization of processing webcam.')
                         for b in range(len(self.bbox_list)):
@@ -254,10 +291,10 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                                     masks = mask
                                 else:
                                     masks += mask
-                                polygon_xmean = (polygon[0]+polygon[2]+polygon[4]+polygon[6])/4
-                                polygon_ymean = (polygon[1]+polygon[3]+polygon[5]+polygon[7])/4
-                                cv2.rectangle(frame, (int(polygon_xmean)-1, int(polygon_ymean)-1),
-                                              (int(polygon_xmean)+1, int(polygon_ymean)+1), (0, 255, 0), 3)
+                                polygon_xmean = (polygon[0] + polygon[2] + polygon[4] + polygon[6]) / 4
+                                polygon_ymean = (polygon[1] + polygon[3] + polygon[5] + polygon[7]) / 4
+                                cv2.rectangle(frame, (int(polygon_xmean) - 1, int(polygon_ymean) - 1),
+                                              (int(polygon_xmean) + 1, int(polygon_ymean) + 1), (0, 255, 0), 3)
                                 self.behavior_analysis(frame, b,
                                                        (polygon_xmean, polygon_ymean), (mask > 0))
                             else:
@@ -271,6 +308,10 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                         cv2.putText(frame, text, (60, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
                 else:
                     # 非处理中，延迟取帧：0.05s
+                    if (self.isPainting):
+                        self.progressBar.setFormat('DRAW')
+                    else:
+                        self.progressBar.setFormat('PHOTOGRAPHY')
                     cv2.waitKey(50)
                 f += 1
                 if self.checkBox.checkState():
@@ -280,7 +321,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                 QApplication.processEvents()
                 if self.isStatus != 3:
                     self.vs.release()
-                    self.label_image.setPixmap(QPixmap())
+                    self.progressBar.setFormat('STAND BY')
                     QApplication.processEvents()
                     break
 
@@ -291,8 +332,17 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
             self.rectList = []
             self.tempPix = QPixmap((self.cv2_to_qimge(self.paint_frame)))
         else:
+            self.progressBar.setFormat('DRAW')
+            if self.bbox_tips:
+                if self.isStatus is not 3:
+                    reply = QMessageBox.information(self, 'Tips', 'You Can Set Initial Frame By: ' +
+                                                    'Keyboard \",\" - Previous Frame; ' +
+                                                    'Keyboard \".\" - Next Frame. ' +
+                                                    '(If You Need)', QMessageBox.Ignore, QMessageBox.Ok)
+                    if reply == QMessageBox.Ignore:
+                        self.bbox_tips = False
             if self.paint_frame is None:
-                QMessageBox.information(self, 'Warning', 'You Must Get Data First.\n(Alt + L / V / C)',
+                QMessageBox.information(self, 'Warning', 'You Must Get Data First. (Alt + L / V / C)',
                                         QMessageBox.Ok)
             else:
                 self.isPainting = True
@@ -300,9 +350,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                 self.pushButton_bboxSetting.setText("&B-box Reconfiguring")
 
     def algorithm_processing(self):
+        if self.isAlgorithm:
+            return
         if len(self.bbox_list) == 0:
             print('[INFO] Error in b-box choosing.')
-            QMessageBox.information(self, 'Warning', 'You Must Confirm B-box First.\n(Shortcut Key: Alt + B)',
+            QMessageBox.information(self, 'Warning', 'You Must Confirm B-box First. (Shortcut Key: Alt + B)',
                                     QMessageBox.Ok)
             return
         self.isPainting = False
@@ -314,7 +366,9 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         elif self.isStatus == 3:
             self.first_frame = True
             return
+        self.isAlgorithm = True
         trackers = []
+        self.progressBar.setFormat('INITIALIZE')
         for b in range(len(self.bbox_list)):
             trackers.append(deepcopy(self.tracker))
         print("[INFO] Starting pictures stream.")
@@ -322,8 +376,11 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.first_frame = True
         save_loc_d = './ans/' + self.video_name.split('/')[-1]
         save_loc_t = save_loc_d + '/' + str(self.tracker_name)
+        self.save_location = save_loc_t
         f = 0
         for frame in self.get_frames(self.video_name):
+            self.progressBar.setProperty('value', (f + 1) * 100 / (self.F - 1))
+            self.scrollBar.setProperty('value', f + self.INIT)
             if self.first_frame:
                 for b in range(len(self.bbox_list)):
                     trackers[b].init(frame, self.bbox_list[b])
@@ -333,6 +390,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                 fps_cal = FPS().start()
                 self.analysis_init()
             else:
+                self.progressBar.setFormat('HANDLE: %p%')
                 if self.isStatus == 0:
                     break
                 masks = None
@@ -363,8 +421,8 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
                 fps_cal.update()
                 fps_cal.stop()
                 text = "FPS: {:.2f}".format(fps_cal.fps())
-                cv2.putText(frame, text, (60, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                # Figure 400 | 340
+                cv2.putText(frame, text, (60, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                # cv2.putText(frame, text, (360, 340), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 f += 1
                 if self.checkBox.checkState():
                     save_loc_i = save_loc_t + "/" + str(f).zfill(4) + ".jpg"
@@ -379,6 +437,84 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.isStatus = 0
         self.pushButton_locationLoading.setText('&Location Loading')
         self.pushButton_videoLoading.setText('&Video Loading')
+        self.progressBar.setFormat('STAND BY')
+        self.progressBar.setProperty('value', 0)
+        self.F = f + 1 + self.INIT
+        self.scrollBar.setMaximum(f + self.INIT)
+        self.isAlgorithm = False
+
+    def keyPressEvent(self, event):
+        if self.isPainting:
+            if event.key() == Qt.Key_Period:
+                if self.scrollBar.value() < self.F - 1:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() + 1)
+            elif event.key() == Qt.Key_Comma:
+                if self.scrollBar.value() > 0:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() - 1)
+        elif self.afterCamera and self.checkBox.checkState():
+            if event.key() == Qt.Key_Period:
+                if self.scrollBar.value() < self.F:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() + 1)
+            elif event.key() == Qt.Key_Comma:
+                if self.scrollBar.value() > 1:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() - 1)
+        elif (self.isStatus is 0) and self.checkBox.checkState():
+            if event.key() == Qt.Key_Period:
+                if self.scrollBar.value() < self.F - 1:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() + 1)
+            elif event.key() == Qt.Key_Comma:
+                if self.scrollBar.value() > self.INIT + 1:
+                    self.scrollBar.setProperty('value', self.scrollBar.value() - 1)
+
+    def slider_change(self):
+        if self.isPainting:
+            self.INIT = self.scrollBar.value()
+            for frame in self.get_frames(self.video_name):
+                self.label_image.setPixmap(QPixmap(self.cv2_to_qimge(frame)))
+                self.paint_frame = frame
+                self.tempPix = QPixmap((self.cv2_to_qimge(self.paint_frame)))
+                QApplication.processEvents()
+                break
+            self.textBrowser.append('————————————\nFirst Frame Now: ' + str(self.INIT) +
+                                    ' of ' + str(self.F))
+        elif self.afterCamera and self.checkBox.checkState():
+            if self.scrollBar.value() < 1:
+                self.scrollBar.setProperty('value', 1)
+            else:
+                save_loc_i = self.save_location + '/' + str(self.scrollBar.value()).zfill(4) + ".jpg"
+                frame = cv2.imread(save_loc_i)
+                self.label_image.setPixmap(QPixmap(self.cv2_to_qimge(frame)))
+                self.paint_frame = frame
+                self.tempPix = QPixmap((self.cv2_to_qimge(self.paint_frame)))
+                QApplication.processEvents()
+        elif (self.isStatus is 0) and self.checkBox.checkState():
+            if self.scrollBar.value() <= self.INIT:
+                self.scrollBar.setProperty('value', self.INIT + 1)
+            else:
+                save_loc_i = self.save_location + '/' + str(self.scrollBar.value() - self.INIT).zfill(4) + ".jpg"
+                frame = cv2.imread(save_loc_i)
+                self.label_image.setPixmap(QPixmap(self.cv2_to_qimge(frame)))
+                self.paint_frame = frame
+                self.tempPix = QPixmap((self.cv2_to_qimge(self.paint_frame)))
+                QApplication.processEvents()
+
+    def checkbox_change(self):
+        if self.isAlgorithm or (self.isStatus is 3):
+            if self.checkBox.checkState():
+                self.checkBox.setChecked(False)
+            else:
+                self.checkBox.setChecked(True)
+            QMessageBox.information(self, 'Warning', 'You Must Change Checkbox Before ' +
+                                    '/ After the Algorithm Procedure.', QMessageBox.Ok)
+            QApplication.processEvents()
+        if self.checkBox.checkState():
+            if self.save_tips:
+                reply = QMessageBox.information(self, 'Tips', 'You Can View Saved Answer By: ' +
+                                                'Keyboard \",\" - Previous Frame; ' +
+                                                'Keyboard \".\" - Next Frame. ' +
+                                                '(After Algorithm Procedure)', QMessageBox.Ignore, QMessageBox.Ok)
+                if reply == QMessageBox.Ignore:
+                    self.save_tips = False
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
