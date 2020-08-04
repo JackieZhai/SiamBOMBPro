@@ -8,6 +8,7 @@ All rights reserved.
 ## Introduction
 Our Demo Video: [https://youtu.be/x4tjOdrtQ98](https://youtu.be/x4tjOdrtQ98) or [https://www.bilibili.com/video/av92152869](https://www.bilibili.com/video/av92152869) \
 Our Paper (IJCAI 2020 Demo Track): [10.24963/ijcai.2020/776](https://www.ijcai.org/Proceedings/2020/0776.pdf)
+Demo from [Ziegler et al.](https://zenodo.org/record/3608658)
 
 <p align="center"><img src="README/demo.gif" width="500"></p>
 
