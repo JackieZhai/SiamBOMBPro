@@ -379,7 +379,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
         self.save_location = save_loc_t
         f = 0
         for frame in self.get_frames(self.video_name):
-            self.progressBar.setProperty('value', (f + 1) * 100 / (self.F - 1))
+            self.progressBar.setProperty('value', (f + 1) * 100 / (self.F - 1 - self.INIT))
             self.scrollBar.setProperty('value', f + self.INIT)
             if self.first_frame:
                 for b in range(len(self.bbox_list)):
