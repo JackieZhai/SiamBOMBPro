@@ -1,4 +1,4 @@
-# SiamBOMB
+# <img src="README/icon.png" width="18.8"> SiamBOMB
 This repo is preview version 0.2 of SiamBOMB. \
 This code is released under the [Apache 2.0 license](https://github.com/JackieZhai/SiamBOMB/blob/master/LICENSE).\
 Copyright \(c\) 2020 Institute of Automation, Chinese Academy of Sciences. 
