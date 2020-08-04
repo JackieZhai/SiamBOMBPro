@@ -1,6 +1,12 @@
 # <img src="README/icon.png" width="20"> SiamBOMB
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-brightgreen.svg)](https://github.com/JackieZhai/SiamBOMB/blob/master/LICENSE)
+![RepoSize](https://img.shields.io/github/repo-size/JackieZhai/SiamBOMBPro)
+![CodeSize](https://img.shields.io/github/languages/code-size/JackieZhai/SiamBOMBPro)
+[![Release](https://img.shields.io/github/v/release/JackieZhai/SiamBOMBPro?include_prereleases&sort=semver)](https://github.com/JackieZhai/SiamBOMBPro/releases)
+![Commit](https://img.shields.io/github/last-commit/JackieZhai/SiamBOMBPro)
+
 This repo is preview version 0.2 of SiamBOMB. \
-This code is released under the [Apache 2.0 license](https://github.com/JackieZhai/SiamBOMB/blob/master/LICENSE).\
 Copyright \(c\) 2020 Institute of Automation, Chinese Academy of Sciences. 
 All rights reserved.
 <p align="center"><img src="README/affiliation.png" width="500"></p>
