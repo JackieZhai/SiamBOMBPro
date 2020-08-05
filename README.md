@@ -27,9 +27,9 @@ Demo from [Ziegler et al.](https://zenodo.org/record/3608658)
 ### 1. Configure environments
 * Linux (Ubuntu 18.04) or Windows (10).
 * GPU (at least have 4 GB memory).
-* CUDA 10.1 (with cudnn).
-* Anaconda 4.8+.
-* Download or `git clone` our code.
+* CUDA 10.1 (with cuDNN).
+* Anaconda 4.8+ (or virtualenv etc.).
+* Download .zip or `git clone` our code.
 ### 2. Install dependencies
 ```Shell
 # create anaconda env
