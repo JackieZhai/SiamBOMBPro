@@ -58,12 +58,31 @@ You can also choose other models from: [Model Zoo](https://github.com/STVIR/pyso
 python window_running.py
 ```
 1. [Top three buttons] Choose one of three loading ways: images, video or webcam.
+
+<p align="center"><img src="README/demo1.png" width="150"></p>
+
 2. [B-box setting] Select several bounding for your targets and determine which is the first frame, it can re-select. 
 (Using the Mouse and Keyboard ',' and '.' or bottom-right ScrollBar)
-3. [Algorithm processing] Do tracking and segmentation, press [Suspending] if you want to terminate.
+
+<p align="center"><img src="README/demo2.png" width="150"> <img src="README/demo7.png" width="200"></p>
+
+3. [Algorithm processing] Do tracking and segmentation, press [...Suspending] if you want to terminate.
+
+<p align="center"><img src="README/demo3.png" width="150">
+<img src="README/demo8.png" width="155"></p>
+
 * Bottom-left is Status/ProcessBar.
+
+<p align="center"><img src="README/demo6.png" width="400"></p>
+
 * Top-left shows output messages including Behavior Analysis. Middle-Right SpinBox for selecting from multiple target.
+
+<p align="center"><img src="README/demo4.png" width="190"></p>
+
 * Middle-Right CheckBox for saving data locally. You can use bottom-right ScrollBar for review after Algorithm procedure.
+
+<p align="center"><img src="README/demo5.png" width="120"></p>
+
 * Suitable for any size of image stream which is smaller than projection area (you can rescale the window before loading stream).
 
 ## References
