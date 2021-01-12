@@ -85,18 +85,9 @@ python window_running.py
 
 * Suitable for any size of image stream which is smaller than projection area (you can rescale the window before loading stream).
 
-## References
-### Repositories
-[PySOT](https://github.com/STVIR/pysot), 
-[SiamFC](https://github.com/huanglianghua/siamfc-pytorch), 
-[SiamRPN](https://github.com/foolwood/DaSiamRPN), 
-[SiamMask](https://github.com/foolwood/SiamMask), 
-[THOR](https://github.com/xl-sr/THOR), 
-[SiamMask_E](https://github.com/baoxinchen/siammask_e), 
-[SiamDW](https://github.com/researchmm/SiamDW)
-### Papers
+## Citation
 ```
-@inproceedings{ijcai2020-776,
+@inproceedings{SiamBOMB,
   title     = {SiamBOMB: A Real-time AI-based System for Home-cage Animal Tracking, Segmentation and Behavioral Analysis},
   author    = {Chen, Xi and Zhai, Hao and Liu, Danqian and Li, Weifu and Ding, Chaoyue and Xie, Qiwei and Han, Hua},
   booktitle = {Proceedings of the Twenty-Ninth International Joint Conference on
@@ -108,8 +99,19 @@ python window_running.py
   doi       = {10.24963/ijcai.2020/776},
   url       = {https://doi.org/10.24963/ijcai.2020/776},
 }
+```
 
-
+## References
+### Repositories
+[PySOT](https://github.com/STVIR/pysot), 
+[SiamFC](https://github.com/huanglianghua/siamfc-pytorch), 
+[SiamRPN](https://github.com/foolwood/DaSiamRPN), 
+[SiamMask](https://github.com/foolwood/SiamMask), 
+[THOR](https://github.com/xl-sr/THOR), 
+[SiamMask_E](https://github.com/baoxinchen/siammask_e), 
+[SiamDW](https://github.com/researchmm/SiamDW)
+### Papers
+```
 @inproceedings{SiamMask,
   title={Fast online object tracking and segmentation: A unifying approach},
   author={Wang, Qiang and Zhang, Li and Bertinetto, Luca and Hu, Weiming and Torr, Philip HS},
