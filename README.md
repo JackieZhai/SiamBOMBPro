@@ -84,6 +84,7 @@ python window_running.py
 <p align="center"><img src="README/demo5.png" width="120"></p>
 
 * Suitable for any size of image stream which is smaller than projection area (you can rescale the window before loading stream).
+The results are saved in the path of `ans`.
 
 ## Citation
 ```
